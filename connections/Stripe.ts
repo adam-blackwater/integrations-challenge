@@ -57,7 +57,6 @@ const StripeConnection: ProcessorConnection<APIKeyCredentials, CardDetails> = {
         .then((result) => {
 
           response = JSON.parse(result.responseText)
-          console.log(response)
 
           let parsedAuthorizationResponse :ParsedAuthorizationResponse
 
