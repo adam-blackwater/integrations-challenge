@@ -29,6 +29,12 @@ async function testAuthTransaction(): Promise<ParsedAuthorizationResponse> {
         expiryYear: 2022,
         cardholderName: 'Mr Foo Bar',
         cvv: '020',
+        // Using test card numbers will only work if the Stripe account
+        // attached to the API key is authorized to process card numbers
+        // without tokenisation 
+        //
+        // https://stripe.com/docs/testing#cards-responses
+        // https://dashboard.stripe.com/account/integration/settings
         cardNumber: '4111111111111111',
       },
     });

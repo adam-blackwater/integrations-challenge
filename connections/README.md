@@ -1,39 +1,79 @@
-# Connections - Processors
+# Connections - Processors                      
 
-For this exercise you'll be implementing a Processor connection using Stripe's API
+This documentation explains how to run the connections processors code. There are some settings that need to be altered in order to do this.
 
-**Note:** you are required to **not** use Stripe's node SDK.
+The API key that is included in the `Stripe.ts` file is valid and you can use it if you wish.
 
-## Set up
+The style guide for formatting this code can be found [here](https://github.com/basarat/typescript-book/blob/master/docs/styleguide/styleguide.md).
 
-You'll need to create an account with [Stripe](https://dashboard.stripe.com/login) and log in to the dashboard.
-Once you've done that, you should be able to find an API Key in the developer section.
+## Set Up
 
-## Get stuck in
+### Set Stripe to accept non-tokenized card numbers over the Stripe API.
 
-There are 4 parts to the exercise:
+Go to the [integrations](https://dashboard.stripe.com/account/integration/settings) page for your Stripe account. Here you can tell the Stripe API to accept non-tokenized card numbers.
 
-- Add your sandbox credentials to `Stripe.ts`
-- Implement the `authorize()` method in `Stripe.ts`
-- Implement the `capture()` method in `Stripe.ts`
-- Implement the `cancel()` method in `Stripe.ts`
+### Authorizing against cards with different properties
 
-Feel free to tackle these in the order that makes most sense to you.
+Stripe offers test cards that will return varying responses.
 
-### Tips
+Replace the value of `cardNumber` in `main.ts` with a card number on the list found [here](https://stripe.com/docs/testing#cards-responses).
 
-- Check out Stripe's PaymentIntents API
-- There is an `HTTPClient` implementation in `./common` that you may use, we've already imported it into `Stripe.ts` for you. Remember though, you can't use Stripe's SDK.
-- If anything is unclear, Don't hesitate to reach out
+#### Useful card numbers
 
-## Run the example
+  - `4111111111111111`: an accepted card number
+  - `4000000000000002`: a declined card number
 
-To run the program use the following command:
+## Notes 
 
-```bash
-yarn start:processors
-```
+The stripe API accepts `form-data`. When adding methods that send `POST` data with bodies, encode the data you wish to send as `form-data` and set the `Content-Type` header to `application/x-www-form-urlencoded`.
 
-Happy Coding :D
+## POST
 
-![Code](https://media.tenor.com/images/8460465dd4597849c320adfe461e91e3/tenor.gif)
+### authorize(): Promise\<ParsedAuthorizationResponse\>
+Some parameters are set in the `POST` data to achieve the desired `PaymentIntent` confirm and capture behaviour.
+
+#### The `confirm` parameter
+
+Setting the `confirm` parameter to `true` allows the `paymentIntent` to be captured with no further confirmation action needed on the `paymentIntent`.
+
+If this parameter is not set to `true` the `paymentIntent` status will be set to `requires_confirmation` and will not be capture-able until confirmed. See [here](https://stripe.com/docs/api/payment_intents/create#create_payment_intent-confirm) for more details. 
+
+#### The `capture_method` parameter
+
+The Stripe API is configured to automatically set a `paymentIntent` to `captured` immediately after they are authorized. This behaviour can be overridden by setting the `capture_method` parameter to `manual`.
+
+#### The `payment_method_data` parameter
+
+To add payment methods that are not registered on a Stripe account the `payment_method_data` parameter will accept payment method details. 
+ 
+This is a hash object which must be provided a  `type` key (in this case it is hard-coded to `card`). On this hash a `card object` may be attached. Details can be found [here](https://stripe.com/docs/api/cards/object).
+
+The result of setting the parameter `payment_method_data` is the `payment_method` parameter is set with the payment details you provide. Details such as card number and expiration year can now be set. See [here](https://stripe.com/docs/api/payment_intents/create#create_payment_intent-payment_method_data) for more details.
+
+#### Response
+
+The `paymentIntent` object is described [here](https://stripe.com/docs/api/payment_intents/object).
+
+The `status` parameter on the returned `paymentIntent` object will be set to `requires_capture`,
+
+### capture(): Promise\<ParsedCaptureResponse\>
+
+Requires the `paymentIntent` id of the `paymentInten` you wish to capture. 
+
+
+#### Response
+
+The `paymentIntent` object is described [here](https://stripe.com/docs/api/payment_intents/object).
+
+The `status` parameter on the returned `paymentIntent` object will be set to `succeeded`.
+
+### cancel(): Promise\<ParsedCancelResponse\>
+
+Requires the `paymentIntent` id of the `paymentInten` you wish to cancel.
+
+
+#### Response
+
+The `paymentIntent` object is described [here](https://stripe.com/docs/api/payment_intents/object).
+
+The `status` parameter on the returned `paymentIntent` object will be set to `canceled`.
