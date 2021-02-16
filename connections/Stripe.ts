@@ -34,6 +34,7 @@ const StripeConnection: ProcessorConnection<APIKeyCredentials, CardDetails> = {
       let encodedData = 
           `amount=${request.amount}`+ 
           `&currency=${request.currencyCode}`+
+          '&confirm=true' +
           '&capture_method=manual' +
           '&payment_method_data[type]=card' + 
           `&payment_method_data[card][number]=${request.paymentMethod.cardNumber}` +
